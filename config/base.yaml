@@ -1,0 +1,39 @@
+# Base configuration for MCP Server
+server:
+  name: "axinova-mcp-server"
+  version: "0.1.0"
+  protocol_version: "2025-11-25"
+
+log:
+  level: "info"
+  format: "json"
+
+# Service endpoints - override in environment-specific configs
+portainer:
+  url: ""
+  token: ""
+  enabled: true
+
+grafana:
+  url: ""
+  token: ""
+  enabled: true
+
+prometheus:
+  url: ""
+  enabled: true
+
+silverbullet:
+  url: ""
+  token: ""
+  enabled: true
+
+vikunja:
+  url: ""
+  token: ""
+  enabled: true
+
+# Timeouts
+timeout:
+  http: 30s
+  operation: 60s

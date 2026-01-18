@@ -1,0 +1,26 @@
+# Development environment configuration
+log:
+  level: "debug"
+  format: "console"
+
+# ax-tools machine (grafana, prometheus, portainer)
+portainer:
+  url: "https://portainer.axinova-internal.xyz"
+  # token: set via APP_PORTAINER__TOKEN env var
+
+grafana:
+  url: "https://grafana.axinova-internal.xyz"
+  # token: set via APP_GRAFANA__TOKEN env var
+
+prometheus:
+  url: "https://prometheus.axinova-internal.xyz"
+  # No auth required for internal access
+
+# ax-sas-tools machine (silverbullet, vikunja)
+silverbullet:
+  url: "https://silverbullet.axinova-internal.xyz"
+  # token: set via APP_SILVERBULLET__TOKEN env var
+
+vikunja:
+  url: "https://vikunja.axinova-internal.xyz"
+  # token: set via APP_VIKUNJA__TOKEN env var
