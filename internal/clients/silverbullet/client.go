@@ -16,10 +16,16 @@ import (
 type Client struct {
 	baseURL    string
 	token      string
+	username   string
+	password   string
 	httpClient *http.Client
 }
 
 // NewClient creates a new SilverBullet client
+// token can be:
+// - Bearer token: "token_value"
+// - Basic auth: "username:password"
+// - Empty: no authentication
 func NewClient(baseURL, token string, timeout time.Duration, skipTLSVerify bool) *Client {
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -27,14 +33,44 @@ func NewClient(baseURL, token string, timeout time.Duration, skipTLSVerify bool)
 		},
 	}
 
-	return &Client{
+	client := &Client{
 		baseURL: baseURL,
-		token:   token,
 		httpClient: &http.Client{
 			Timeout:   timeout,
 			Transport: transport,
 		},
 	}
+
+	// Parse token - check if it's basic auth (username:password format)
+	if token != "" {
+		// Split on first colon to support passwords with colons
+		parts := splitFirst(token, ":")
+		if len(parts) == 2 {
+			// Basic auth format: username:password
+			client.username = parts[0]
+			client.password = parts[1]
+		} else {
+			// Bearer token format
+			client.token = token
+		}
+	}
+
+	return client
+}
+
+// splitFirst splits string on first occurrence of separator
+func splitFirst(s, sep string) []string {
+	idx := len(s)
+	for i := range s {
+		if s[i:i+len(sep)] == sep {
+			idx = i
+			break
+		}
+	}
+	if idx == len(s) {
+		return []string{s}
+	}
+	return []string{s[:idx], s[idx+len(sep):]}
 }
 
 // Page represents a SilverBullet page/note
@@ -73,9 +109,7 @@ func (c *Client) GetPage(ctx context.Context, pageName string) (string, error) {
 		return "", err
 	}
 
-	if c.token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.token)
-	}
+	c.setAuth(req)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -105,9 +139,7 @@ func (c *Client) CreatePage(ctx context.Context, pageName, content string) error
 		return err
 	}
 
-	if c.token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.token)
-	}
+	c.setAuth(req)
 	req.Header.Set("Content-Type", "text/markdown")
 
 	resp, err := c.httpClient.Do(req)
@@ -139,9 +171,7 @@ func (c *Client) DeletePage(ctx context.Context, pageName string) error {
 		return err
 	}
 
-	if c.token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.token)
-	}
+	c.setAuth(req)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -200,9 +230,7 @@ func (c *Client) doRequest(ctx context.Context, method, url string, body interfa
 		return err
 	}
 
-	if c.token != "" {
-		req.Header.Set("Authorization", "Bearer "+c.token)
-	}
+	c.setAuth(req)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
@@ -225,4 +253,16 @@ func (c *Client) doRequest(ctx context.Context, method, url string, body interfa
 	}
 
 	return nil
+}
+
+// setAuth sets authentication headers on the request
+func (c *Client) setAuth(req *http.Request) {
+	if c.username != "" && c.password != "" {
+		// Basic authentication
+		req.SetBasicAuth(c.username, c.password)
+	} else if c.token != "" {
+		// Bearer token authentication
+		req.Header.Set("Authorization", "Bearer "+c.token)
+	}
+	// If both are empty, no authentication is set
 }
