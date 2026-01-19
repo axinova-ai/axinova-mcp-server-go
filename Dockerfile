@@ -3,6 +3,9 @@ FROM golang:1.22-alpine AS builder
 
 WORKDIR /build
 
+# Set Go proxy for China (fallback to direct)
+ENV GOPROXY=https://goproxy.cn,https://goproxy.io,direct
+
 # Install build dependencies
 RUN apk add --no-cache git make
 
