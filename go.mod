@@ -1,6 +1,6 @@
 module github.com/axinova-ai/axinova-mcp-server-go
 
-go 1.22
+go 1.23
 
 require (
 	github.com/knadh/koanf/parsers/yaml v1.1.0
