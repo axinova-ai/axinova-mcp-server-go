@@ -1,0 +1,11 @@
+# Production environment configuration
+log:
+  level: "info"
+  format: "json"
+
+# TLS verification - skip for internal services with Traefik TLS termination
+tls:
+  skip_verify: true
+
+# Service URLs configured via environment variables
+# APP_PORTAINER__URL, APP_PORTAINER__TOKEN, etc.

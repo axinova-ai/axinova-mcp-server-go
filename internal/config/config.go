@@ -14,14 +14,15 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	Server     ServerConfig     `koanf:"server"`
-	Log        LogConfig        `koanf:"log"`
-	Portainer  ServiceConfig    `koanf:"portainer"`
-	Grafana    ServiceConfig    `koanf:"grafana"`
-	Prometheus ServiceConfig    `koanf:"prometheus"`
-	SilverBullet ServiceConfig  `koanf:"silverbullet"`
-	Vikunja    ServiceConfig    `koanf:"vikunja"`
-	Timeout    TimeoutConfig    `koanf:"timeout"`
+	Server       ServerConfig     `koanf:"server"`
+	Log          LogConfig        `koanf:"log"`
+	Portainer    ServiceConfig    `koanf:"portainer"`
+	Grafana      ServiceConfig    `koanf:"grafana"`
+	Prometheus   ServiceConfig    `koanf:"prometheus"`
+	SilverBullet ServiceConfig    `koanf:"silverbullet"`
+	Vikunja      ServiceConfig    `koanf:"vikunja"`
+	Timeout      TimeoutConfig    `koanf:"timeout"`
+	TLS          TLSConfig        `koanf:"tls"`
 }
 
 type ServerConfig struct {
@@ -44,6 +45,10 @@ type ServiceConfig struct {
 type TimeoutConfig struct {
 	HTTP      time.Duration `koanf:"http"`
 	Operation time.Duration `koanf:"operation"`
+}
+
+type TLSConfig struct {
+	SkipVerify bool `koanf:"skip_verify"`
 }
 
 // Load loads configuration from files and environment variables

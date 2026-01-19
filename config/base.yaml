@@ -37,3 +37,7 @@ vikunja:
 timeout:
   http: 30s
   operation: 60s
+
+# TLS settings
+tls:
+  skip_verify: false  # Set to true for internal services with self-signed certs

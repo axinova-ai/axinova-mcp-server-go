@@ -42,6 +42,7 @@ func main() {
 			cfg.Portainer.URL,
 			cfg.Portainer.Token,
 			cfg.Timeout.HTTP,
+			cfg.TLS.SkipVerify,
 		)
 		portainer.RegisterTools(mcpServer, portainerClient)
 		log.Printf("✓ Portainer tools registered (%s)", cfg.Portainer.URL)
@@ -55,6 +56,7 @@ func main() {
 			cfg.Grafana.URL,
 			cfg.Grafana.Token,
 			cfg.Timeout.HTTP,
+			cfg.TLS.SkipVerify,
 		)
 		grafana.RegisterTools(mcpServer, grafanaClient)
 		log.Printf("✓ Grafana tools registered (%s)", cfg.Grafana.URL)
@@ -67,6 +69,7 @@ func main() {
 		prometheusClient := prometheus.NewClient(
 			cfg.Prometheus.URL,
 			cfg.Timeout.HTTP,
+			cfg.TLS.SkipVerify,
 		)
 		prometheus.RegisterTools(mcpServer, prometheusClient)
 		log.Printf("✓ Prometheus tools registered (%s)", cfg.Prometheus.URL)
@@ -80,6 +83,7 @@ func main() {
 			cfg.SilverBullet.URL,
 			cfg.SilverBullet.Token,
 			cfg.Timeout.HTTP,
+			cfg.TLS.SkipVerify,
 		)
 		silverbullet.RegisterTools(mcpServer, silverbulletClient)
 		log.Printf("✓ SilverBullet tools registered (%s)", cfg.SilverBullet.URL)
@@ -93,6 +97,7 @@ func main() {
 			cfg.Vikunja.URL,
 			cfg.Vikunja.Token,
 			cfg.Timeout.HTTP,
+			cfg.TLS.SkipVerify,
 		)
 		vikunja.RegisterTools(mcpServer, vikunjaClient)
 		log.Printf("✓ Vikunja tools registered (%s)", cfg.Vikunja.URL)
