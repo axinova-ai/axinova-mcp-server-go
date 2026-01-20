@@ -75,10 +75,12 @@ func splitFirst(s, sep string) []string {
 
 // Page represents a SilverBullet page/note
 type Page struct {
-	Name         string    `json:"name"`
-	LastModified time.Time `json:"lastModified"`
-	Size         int       `json:"size"`
-	ContentType  string    `json:"contentType"`
+	Name         string `json:"name"`
+	Created      int64  `json:"created"`      // Unix timestamp in milliseconds
+	LastModified int64  `json:"lastModified"` // Unix timestamp in milliseconds
+	Size         int    `json:"size"`
+	ContentType  string `json:"contentType"`
+	Perm         string `json:"perm"` // "ro" (read-only) or "rw" (read-write)
 }
 
 // SearchResult represents a search result
@@ -90,7 +92,7 @@ type SearchResult struct {
 
 // ListPages lists all pages
 func (c *Client) ListPages(ctx context.Context) ([]Page, error) {
-	url := fmt.Sprintf("%s/index.json", c.baseURL)
+	url := fmt.Sprintf("%s/.fs", c.baseURL)
 
 	var pages []Page
 	if err := c.doRequest(ctx, "GET", url, nil, &pages); err != nil {
@@ -102,7 +104,7 @@ func (c *Client) ListPages(ctx context.Context) ([]Page, error) {
 
 // GetPage retrieves a page content
 func (c *Client) GetPage(ctx context.Context, pageName string) (string, error) {
-	url := fmt.Sprintf("%s/%s.md", c.baseURL, url.PathEscape(pageName))
+	url := fmt.Sprintf("%s/.fs/%s.md", c.baseURL, url.PathEscape(pageName))
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -110,6 +112,7 @@ func (c *Client) GetPage(ctx context.Context, pageName string) (string, error) {
 	}
 
 	c.setAuth(req)
+	req.Header.Set("X-Sync-Mode", "true")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -132,7 +135,7 @@ func (c *Client) GetPage(ctx context.Context, pageName string) (string, error) {
 
 // CreatePage creates a new page
 func (c *Client) CreatePage(ctx context.Context, pageName, content string) error {
-	url := fmt.Sprintf("%s/%s.md", c.baseURL, url.PathEscape(pageName))
+	url := fmt.Sprintf("%s/.fs/%s.md", c.baseURL, url.PathEscape(pageName))
 
 	req, err := http.NewRequestWithContext(ctx, "PUT", url, bytes.NewBufferString(content))
 	if err != nil {
@@ -140,6 +143,7 @@ func (c *Client) CreatePage(ctx context.Context, pageName, content string) error
 	}
 
 	c.setAuth(req)
+	req.Header.Set("X-Sync-Mode", "true")
 	req.Header.Set("Content-Type", "text/markdown")
 
 	resp, err := c.httpClient.Do(req)
@@ -164,7 +168,7 @@ func (c *Client) UpdatePage(ctx context.Context, pageName, content string) error
 
 // DeletePage deletes a page
 func (c *Client) DeletePage(ctx context.Context, pageName string) error {
-	url := fmt.Sprintf("%s/%s.md", c.baseURL, url.PathEscape(pageName))
+	url := fmt.Sprintf("%s/.fs/%s.md", c.baseURL, url.PathEscape(pageName))
 
 	req, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
 	if err != nil {
@@ -172,6 +176,7 @@ func (c *Client) DeletePage(ctx context.Context, pageName string) error {
 	}
 
 	c.setAuth(req)
+	req.Header.Set("X-Sync-Mode", "true")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -231,6 +236,7 @@ func (c *Client) doRequest(ctx context.Context, method, url string, body interfa
 	}
 
 	c.setAuth(req)
+	req.Header.Set("X-Sync-Mode", "true")
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}

@@ -1,27 +1,10 @@
-version: '3.8'
-
 services:
   mcp-server:
     build: .
     image: axinova-mcp-server:latest
     container_name: axinova-mcp-server
     restart: unless-stopped
-    environment:
-      - ENV=prod
-      # Portainer (ax-tools)
-      - APP_PORTAINER__URL=https://portainer.axinova-internal.xyz
-      - APP_PORTAINER__TOKEN=${PORTAINER_TOKEN}
-      # Grafana (ax-tools)
-      - APP_GRAFANA__URL=https://grafana.axinova-internal.xyz
-      - APP_GRAFANA__TOKEN=${GRAFANA_TOKEN}
-      # Prometheus (ax-tools)
-      - APP_PROMETHEUS__URL=https://prometheus.axinova-internal.xyz
-      # SilverBullet (ax-sas-tools)
-      - APP_SILVERBULLET__URL=https://silverbullet.axinova-internal.xyz
-      - APP_SILVERBULLET__TOKEN=${SILVERBULLET_TOKEN}
-      # Vikunja (ax-sas-tools)
-      - APP_VIKUNJA__URL=https://vikunja.axinova-internal.xyz
-      - APP_VIKUNJA__TOKEN=${VIKUNJA_TOKEN}
+    env_file: .env
     # For stdio transport, we don't need to expose ports
     # The MCP server communicates via stdin/stdout
     stdin_open: true
