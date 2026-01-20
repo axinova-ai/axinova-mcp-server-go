@@ -87,3 +87,16 @@ jobs:
           token: ${{ secrets.DEPLOY_REPO_TOKEN }}
           pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
           merge-method: squash
+      - name: Trigger Dashboard Update
+        if: success()
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: axinova-ai/axinova-ci-dashboard
+          event-type: deployment-complete
+          client-payload: |
+            {
+              "service": "${{ github.event.repository.name }}",
+              "environment": "dev",
+              "tag": "sha-${{ github.sha }}"
+            }
