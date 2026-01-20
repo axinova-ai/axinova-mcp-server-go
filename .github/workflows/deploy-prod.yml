@@ -84,6 +84,7 @@ jobs:
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
           token: ${{ secrets.DEPLOY_REPO_TOKEN }}
+          repository: ${{ env.GITOPS_REPO }}
           pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
           merge-method: squash
       - name: Trigger Dashboard Update
