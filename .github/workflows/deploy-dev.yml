@@ -5,7 +5,8 @@ on:
     branches:
       - "feature/**"
     paths-ignore:
-      - ".github/**"
+      - "**/*.md"
+      - "docs/**"
 
 permissions:
   contents: read
