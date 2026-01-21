@@ -47,6 +47,19 @@ jobs:
           tags: ghcr.io/axinova-ai/axinova-mcp-server-go:sha-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Push to Local Registry
+        if: success()
+        run: |
+          IMAGE_NAME="ghcr.io/axinova-ai/axinova-mcp-server-go"
+          IMAGE_TAG="sha-${{ github.sha }}"
+          LOCAL_IMAGE="registry.axinova-internal.xyz/axinova-ai/axinova-mcp-server-go:${IMAGE_TAG}"
+          docker tag "${IMAGE_NAME}:${IMAGE_TAG}" "${LOCAL_IMAGE}"
+          if timeout 30s docker push "${LOCAL_IMAGE}" 2>/dev/null; then
+            echo "✓ Pushed to local registry"
+          else
+            echo "⚠️ Local registry unavailable (not critical)"
+          fi
+        continue-on-error: true
 
   update-gitops:
     if: startsWith(github.ref, 'refs/heads/feature/')
@@ -85,6 +98,7 @@ jobs:
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
           token: ${{ secrets.DEPLOY_REPO_TOKEN }}
+          repository: ${{ env.GITOPS_REPO }}
           pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
           merge-method: squash
       - name: Trigger Dashboard Update
