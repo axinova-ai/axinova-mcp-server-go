@@ -96,6 +96,7 @@ jobs:
           labels: "deploy:dev"
       - name: Enable PR auto-merge
         if: steps.cpr.outputs.pull-request-number != ''
+        continue-on-error: true
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
           token: ${{ secrets.DEPLOY_REPO_TOKEN }}
