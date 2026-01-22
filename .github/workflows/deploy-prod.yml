@@ -54,11 +54,16 @@ jobs:
           IMAGE_NAME="ghcr.io/axinova-ai/axinova-mcp-server-go"
           IMAGE_TAG="sha-${{ github.sha }}"
           LOCAL_IMAGE="registry.axinova-internal.xyz/axinova-ai/axinova-mcp-server-go:${IMAGE_TAG}"
-          docker tag "${IMAGE_NAME}:${IMAGE_TAG}" "${LOCAL_IMAGE}"
-          if timeout 30s docker push "${LOCAL_IMAGE}" 2>/dev/null; then
-            echo "✓ Pushed to local registry"
+          # Pull image from GHCR first (buildx doesn't keep local copy)
+          if docker pull "${IMAGE_NAME}:${IMAGE_TAG}"; then
+            docker tag "${IMAGE_NAME}:${IMAGE_TAG}" "${LOCAL_IMAGE}"
+            if timeout 30s docker push "${LOCAL_IMAGE}" 2>/dev/null; then
+              echo "✓ Pushed to local registry"
+            else
+              echo "⚠️ Local registry unavailable (not critical)"
+            fi
           else
-            echo "⚠️ Local registry unavailable (not critical)"
+            echo "⚠️ Could not pull image from GHCR (not critical)"
           fi
         continue-on-error: true
 
