@@ -1,8 +1,12 @@
 name: ci
 
 on:
-  pull_request:
   push:
+    branches:
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
 
 env:
   GITOPS_REPO: ${{ github.repository_owner }}/axinova-deploy
