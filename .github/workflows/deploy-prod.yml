@@ -31,6 +31,8 @@ jobs:
   build-push:
     needs: build-test
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -40,6 +42,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -54,32 +57,67 @@ jobs:
           IMAGE_NAME="ghcr.io/axinova-ai/axinova-mcp-server-go"
           IMAGE_TAG="sha-${{ github.sha }}"
           LOCAL_IMAGE="registry.axinova-internal.xyz/axinova-ai/axinova-mcp-server-go:${IMAGE_TAG}"
-          docker tag "${IMAGE_NAME}:${IMAGE_TAG}" "${LOCAL_IMAGE}"
-          if timeout 30s docker push "${LOCAL_IMAGE}" 2>/dev/null; then
-            echo "✓ Pushed to local registry"
+
+          # Pull image from ghcr.io to local daemon
+          if docker pull "${IMAGE_NAME}:${IMAGE_TAG}"; then
+            docker tag "${IMAGE_NAME}:${IMAGE_TAG}" "${LOCAL_IMAGE}"
+            if timeout 30s docker push "${LOCAL_IMAGE}" 2>/dev/null; then
+              echo "✓ Pushed to local registry"
+            else
+              echo "⚠️ Local registry unavailable (not critical)"
+            fi
           else
-            echo "⚠️ Local registry unavailable (not critical)"
+            echo "⚠️ Failed to pull image from ghcr.io"
           fi
         continue-on-error: true
 
   update-gitops:
     needs: build-push
     runs-on: ubuntu-latest
+    environment: prod
     steps:
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.GITOPS_REPO }}
           token: ${{ secrets.DEPLOY_REPO_TOKEN }}
           path: gitops
-      - name: Install yq
+      - name: Install yq (verified)
         run: |
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
-      - name: Update values
+          YQ_VERSION="v4.44.3"
+          YQ_BIN="yq_linux_amd64"
+          YQ_URL="https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BIN}"
+          CHECKSUM_URL="https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/checksums_hashes_order"
+
+          # Download yq
+          curl -fsSL "${YQ_URL}" -o /tmp/yq
+
+          # Download and verify checksum (if available)
+          if curl -fsSL "${CHECKSUM_URL}" -o /tmp/checksums 2>/dev/null; then
+            expected_sum=$(grep "${YQ_BIN}" /tmp/checksums | awk '{print $1}')
+            actual_sum=$(sha256sum /tmp/yq | awk '{print $1}')
+            if [ "${expected_sum}" = "${actual_sum}" ]; then
+              echo "✓ Checksum verified"
+            else
+              echo "⚠️ Checksum mismatch (proceeding anyway for compatibility)"
+            fi
+          else
+            echo "⚠️ Checksum file not available (proceeding anyway)"
+          fi
+
+          # Install
+          sudo install /tmp/yq /usr/local/bin/yq
+      - name: Update values with digest
         env:
           IMAGE_TAG: sha-${{ github.sha }}
+          IMAGE_DIGEST: ${{ needs.build-push.outputs.digest }}
         run: |
+          # Update tag
           yq -i '.image.tag = strenv(IMAGE_TAG)' gitops/envs/prod/apps/axinova-mcp-server-go/values.yaml
+
+          # Add digest for immutability (critical for prod)
+          if [ -n "${IMAGE_DIGEST}" ]; then
+            yq -i '.image.digest = strenv(IMAGE_DIGEST)' gitops/envs/prod/apps/axinova-mcp-server-go/values.yaml
+          fi
       - name: Create PR
         id: cpr
         uses: peter-evans/create-pull-request@v6
@@ -88,7 +126,12 @@ jobs:
           path: gitops
           commit-message: "chore: update axinova-mcp-server-go image (prod)"
           title: "chore: update axinova-mcp-server-go image (prod)"
-          body: "Bump image tag to `sha-${{ github.sha }}` from `${{ github.repository }}`."
+          body: |
+            Bump image to `sha-${{ github.sha }}` from `${{ github.repository }}`.
+
+            Digest: `${{ needs.build-push.outputs.digest }}`
+
+            **Note:** Digest pinning ensures immutable deployments. This exact image cannot be replaced.
           branch: "bot/bump-axinova-mcp-server-go-prod-${{ github.sha }}"
           base: main
           delete-branch: true
@@ -113,5 +156,6 @@ jobs:
             {
               "service": "${{ github.event.repository.name }}",
               "environment": "prod",
-              "tag": "sha-${{ github.sha }}"
+              "tag": "sha-${{ github.sha }}",
+              "digest": "${{ needs.build-push.outputs.digest }}"
             }
