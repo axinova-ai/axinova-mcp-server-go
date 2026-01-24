@@ -349,3 +349,102 @@ func (s *Server) sendResponse(resp JSONRPCResponse) error {
 	s.logger.Printf("Sent response (id=%v)", resp.ID)
 	return nil
 }
+
+// GetTools returns the list of registered tools
+func (s *Server) GetTools() []Tool {
+	return s.tools
+}
+
+// GetResources returns the list of registered resources
+func (s *Server) GetResources() []Resource {
+	return s.resources
+}
+
+// HandleHTTPRequest handles an HTTP JSON-RPC request
+func (s *Server) HandleHTTPRequest(ctx context.Context, req *JSONRPCRequest) (interface{}, error) {
+	switch req.Method {
+	case "tools/list":
+		return map[string]interface{}{
+			"tools": s.tools,
+		}, nil
+
+	case "tools/call":
+		var params struct {
+			Name      string                 `json:"name"`
+			Arguments map[string]interface{} `json:"arguments"`
+		}
+
+		// Convert params interface{} to struct
+		paramsBytes, err := json.Marshal(req.Params)
+		if err != nil {
+			return nil, fmt.Errorf("invalid params: %w", err)
+		}
+		if err := json.Unmarshal(paramsBytes, &params); err != nil {
+			return nil, fmt.Errorf("invalid params: %w", err)
+		}
+
+		handler, exists := s.toolHandlers[params.Name]
+		if !exists {
+			return nil, fmt.Errorf("tool not found: %s", params.Name)
+		}
+
+		result, err := handler(ctx, params.Arguments)
+		if err != nil {
+			return nil, fmt.Errorf("tool execution failed: %w", err)
+		}
+
+		return map[string]interface{}{
+			"content": []map[string]interface{}{
+				{
+					"type": "text",
+					"text": fmt.Sprintf("%v", result),
+				},
+			},
+		}, nil
+
+	case "resources/list":
+		return map[string]interface{}{
+			"resources": s.resources,
+		}, nil
+
+	case "resources/read":
+		var params struct {
+			URI string `json:"uri"`
+		}
+
+		// Convert params interface{} to struct
+		paramsBytes, err := json.Marshal(req.Params)
+		if err != nil {
+			return nil, fmt.Errorf("invalid params: %w", err)
+		}
+		if err := json.Unmarshal(paramsBytes, &params); err != nil {
+			return nil, fmt.Errorf("invalid params: %w", err)
+		}
+
+		handler, exists := s.resourceHandlers[params.URI]
+		if !exists {
+			return nil, fmt.Errorf("resource not found: %s", params.URI)
+		}
+
+		content, mimeType, err := handler(ctx, params.URI)
+		if err != nil {
+			return nil, fmt.Errorf("resource read failed: %w", err)
+		}
+
+		return map[string]interface{}{
+			"contents": []map[string]interface{}{
+				{
+					"uri":      params.URI,
+					"mimeType": mimeType,
+					"text":     content,
+				},
+			},
+		}, nil
+
+	case "ping":
+		return map[string]interface{}{}, nil
+
+	default:
+		return nil, fmt.Errorf("method not supported via HTTP: %s", req.Method)
+	}
+}

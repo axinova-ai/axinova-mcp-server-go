@@ -31,6 +31,9 @@ type ServerConfig struct {
 	ProtocolVersion string `koanf:"protocol_version"`
 	HTTPEnabled     bool   `koanf:"http_enabled"`
 	HTTPPort        int    `koanf:"http_port"`
+	APIEnabled      bool   `koanf:"api_enabled"`
+	APIPort         int    `koanf:"api_port"`
+	APIToken        string `koanf:"api_token"`
 }
 
 type LogConfig struct {

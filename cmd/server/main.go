@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/axinova-ai/axinova-mcp-server-go/internal/api"
 	"github.com/axinova-ai/axinova-mcp-server-go/internal/clients/grafana"
 	"github.com/axinova-ai/axinova-mcp-server-go/internal/clients/portainer"
 	"github.com/axinova-ai/axinova-mcp-server-go/internal/clients/prometheus"
@@ -133,6 +134,20 @@ func main() {
 			log.Printf("Starting HTTP health server on port %d", cfg.Server.HTTPPort)
 			if err := healthServer.Start(ctx); err != nil && err != http.ErrServerClosed {
 				log.Printf("Health server error: %v", err)
+			}
+		}()
+	}
+
+	// Start HTTP API server if enabled
+	if cfg.Server.APIEnabled {
+		if cfg.Server.APIToken == "" {
+			log.Fatal("API server enabled but APP_SERVER__API_TOKEN not set")
+		}
+		apiServer := api.NewAPIServer(cfg.Server.APIPort, cfg.Server.APIToken, mcpServer, log.Default())
+		go func() {
+			log.Printf("Starting MCP API server on port %d", cfg.Server.APIPort)
+			if err := apiServer.Start(ctx); err != nil && err != http.ErrServerClosed {
+				log.Printf("API server error: %v", err)
 			}
 		}()
 	}

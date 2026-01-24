@@ -5,6 +5,9 @@ server:
   protocol_version: "2025-11-25"
   http_enabled: true
   http_port: 9001
+  api_enabled: true
+  api_port: 8080
+  api_token: ""  # Set via environment variable APP_SERVER__API_TOKEN
 
 log:
   level: "info"
