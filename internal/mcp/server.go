@@ -8,6 +8,9 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
+
+	"github.com/axinova-ai/axinova-mcp-server-go/internal/metrics"
 )
 
 // ToolHandler is a function that executes a tool
@@ -52,12 +55,14 @@ func NewServer(name, version, protocolVersion string) *Server {
 func (s *Server) RegisterTool(tool Tool, handler ToolHandler) {
 	s.tools = append(s.tools, tool)
 	s.toolHandlers[tool.Name] = handler
+	metrics.RecordToolsRegistered(len(s.tools))
 }
 
 // RegisterResource registers a resource with its handler
 func (s *Server) RegisterResource(resource Resource, handler ResourceHandler) {
 	s.resources = append(s.resources, resource)
 	s.resourceHandlers[resource.URI] = handler
+	metrics.RecordResourcesRegistered(len(s.resources))
 }
 
 // RegisterPrompt registers a prompt
@@ -116,32 +121,46 @@ func (s *Server) isDockerMode() bool {
 }
 
 func (s *Server) handleRequest(ctx context.Context, req *JSONRPCRequest) error {
+	startTime := time.Now()
 	s.logger.Printf("Received: %s (id=%v)", req.Method, req.ID)
+
+	var err error
+	var errCode string
 
 	switch req.Method {
 	case "initialize":
-		return s.handleInitialize(req)
+		err = s.handleInitialize(req)
 	case "initialized":
 		// Notification, no response needed
 		s.logger.Println("Client initialized")
 		return nil
 	case "tools/list":
-		return s.handleListTools(req)
+		err = s.handleListTools(req)
 	case "tools/call":
-		return s.handleCallTool(ctx, req)
+		err = s.handleCallTool(ctx, req)
 	case "resources/list":
-		return s.handleListResources(req)
+		err = s.handleListResources(req)
 	case "resources/read":
-		return s.handleReadResource(ctx, req)
+		err = s.handleReadResource(ctx, req)
 	case "prompts/list":
-		return s.handleListPrompts(req)
+		err = s.handleListPrompts(req)
 	case "prompts/get":
-		return s.handleGetPrompt(req)
+		err = s.handleGetPrompt(req)
 	case "ping":
-		return s.sendResult(req.ID, map[string]interface{}{})
+		err = s.sendResult(req.ID, map[string]interface{}{})
 	default:
-		return s.sendError(req.ID, -32601, "Method not found", req.Method)
+		errCode = "-32601"
+		err = s.sendError(req.ID, -32601, "Method not found", req.Method)
 	}
+
+	// Record metrics
+	duration := time.Since(startTime)
+	if err != nil && errCode == "" {
+		errCode = "unknown"
+	}
+	metrics.RecordRPCRequest(req.Method, "stdio", duration, errCode)
+
+	return err
 }
 
 func (s *Server) handleInitialize(req *JSONRPCRequest) error {

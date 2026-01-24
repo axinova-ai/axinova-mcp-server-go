@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type HealthServer struct {
@@ -47,6 +49,9 @@ func (hs *HealthServer) Start(ctx context.Context) error {
 			"mode":     "stdio",
 		})
 	})
+
+	// Prometheus metrics endpoint
+	mux.Handle("/metrics", promhttp.Handler())
 
 	hs.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", hs.port),
