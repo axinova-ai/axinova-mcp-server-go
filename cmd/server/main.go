@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,6 +15,7 @@ import (
 	"github.com/axinova-ai/axinova-mcp-server-go/internal/clients/silverbullet"
 	"github.com/axinova-ai/axinova-mcp-server-go/internal/clients/vikunja"
 	"github.com/axinova-ai/axinova-mcp-server-go/internal/config"
+	"github.com/axinova-ai/axinova-mcp-server-go/internal/health"
 	"github.com/axinova-ai/axinova-mcp-server-go/internal/mcp"
 )
 
@@ -124,7 +126,18 @@ func main() {
 		cancel()
 	}()
 
-	// Run MCP server (stdio transport)
+	// Start HTTP health server if enabled
+	if cfg.Server.HTTPEnabled {
+		healthServer := health.NewHealthServer(cfg.Server.HTTPPort)
+		go func() {
+			log.Printf("Starting HTTP health server on port %d", cfg.Server.HTTPPort)
+			if err := healthServer.Start(ctx); err != nil && err != http.ErrServerClosed {
+				log.Printf("Health server error: %v", err)
+			}
+		}()
+	}
+
+	// Run MCP server (stdio transport) - blocks indefinitely in Docker mode
 	log.Println("MCP Server starting (stdio transport)...")
 	if err := mcpServer.Run(ctx); err != nil {
 		log.Fatalf("Server error: %v", err)

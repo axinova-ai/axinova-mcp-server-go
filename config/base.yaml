@@ -3,6 +3,8 @@ server:
   name: "axinova-mcp-server"
   version: "0.1.0"
   protocol_version: "2025-11-25"
+  http_enabled: true
+  http_port: 9001
 
 log:
   level: "info"

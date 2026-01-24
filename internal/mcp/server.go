@@ -71,27 +71,48 @@ func (s *Server) Run(ctx context.Context) error {
 
 	scanner := bufio.NewScanner(s.input)
 
-	for scanner.Scan() {
-		line := scanner.Bytes()
+	for {
+		select {
+		case <-ctx.Done():
+			s.logger.Println("Context cancelled, shutting down")
+			return ctx.Err()
+		default:
+			if !scanner.Scan() {
+				if err := scanner.Err(); err != nil {
+					return fmt.Errorf("scanner error: %w", err)
+				}
+				// EOF reached
+				if s.isDockerMode() {
+					// In Docker, block waiting for shutdown signal
+					s.logger.Println("Stdin EOF, waiting for shutdown signal...")
+					<-ctx.Done()
+					return nil
+				}
+				// In local mode, exit normally
+				return nil
+			}
 
-		// Parse JSON-RPC request
-		var req JSONRPCRequest
-		if err := json.Unmarshal(line, &req); err != nil {
-			s.sendError(nil, -32700, "Parse error", err.Error())
-			continue
-		}
+			line := scanner.Bytes()
 
-		// Handle request
-		if err := s.handleRequest(ctx, &req); err != nil {
-			s.logger.Printf("Error handling request: %v", err)
+			// Parse JSON-RPC request
+			var req JSONRPCRequest
+			if err := json.Unmarshal(line, &req); err != nil {
+				s.sendError(nil, -32700, "Parse error", err.Error())
+				continue
+			}
+
+			// Handle request
+			if err := s.handleRequest(ctx, &req); err != nil {
+				s.logger.Printf("Error handling request: %v", err)
+			}
 		}
 	}
+}
 
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("scanner error: %w", err)
-	}
-
-	return nil
+// isDockerMode checks if running inside Docker container
+func (s *Server) isDockerMode() bool {
+	_, err := os.Stat("/.dockerenv")
+	return err == nil
 }
 
 func (s *Server) handleRequest(ctx context.Context, req *JSONRPCRequest) error {

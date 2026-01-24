@@ -29,6 +29,8 @@ type ServerConfig struct {
 	Name            string `koanf:"name"`
 	Version         string `koanf:"version"`
 	ProtocolVersion string `koanf:"protocol_version"`
+	HTTPEnabled     bool   `koanf:"http_enabled"`
+	HTTPPort        int    `koanf:"http_port"`
 }
 
 type LogConfig struct {
