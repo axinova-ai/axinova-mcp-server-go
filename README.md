@@ -17,9 +17,20 @@ This MCP server exposes a unified interface for AI assistants and agents to inte
 - ✅ **MCP Protocol 2025-11-25** compliant
 - ✅ **40+ Tools** across 5 services
 - ✅ **stdio transport** for local/container integrations
+- ✅ **HTTP JSON-RPC API** for remote LLM agent access
 - ✅ **Modular design** - easy to add new services
 - ✅ **Configuration-driven** - Koanf with env var support
-- ✅ **Production-ready** - Docker support, graceful shutdown
+- ✅ **Production-ready** - Docker support, graceful shutdown, Prometheus metrics
+
+## Documentation
+
+📚 **Comprehensive documentation available in the [docs/](./docs) directory:**
+
+- **[API Reference](./docs/API-REFERENCE.md)** - Complete HTTP API documentation with examples
+- **[LLM Integration Guide](./docs/LLM-INTEGRATION.md)** - How to integrate with Claude, LangChain, LlamaIndex, OpenAI, and custom agents
+- **[Tool Catalog](./docs/TOOL-CATALOG.md)** - Complete list of all 40+ tools with schemas and examples
+
+**Production Server:** `https://mcp.axinova-ai.com`
 
 ## Quick Start
 
