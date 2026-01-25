@@ -1,302 +1,244 @@
-# Axinova MCP Server Documentation
+# Documentation Index
 
-Documentation for the Model Context Protocol (MCP) server implementation.
+Welcome to the Axinova MCP Server documentation. This index will help you find the right guide for your use case.
 
-## Quick Start
-- [README](../README.md) - Project overview and quick start guide
-- [Deployment Guide](runbooks/DEPLOYMENT.md) - Production deployment steps
-- [Testing Guide](runbooks/TESTING.md) - How to test the MCP server
-- [Token Generation Walkthrough](ops/TOKEN_GENERATION_WALKTHROUGH.md) - Authentication setup
+## 🚀 Getting Started
 
----
+Choose your integration method based on your client:
 
-## Operational Guides
+### Native MCP Integration (Recommended)
 
-Located in [ops/](ops/)
+For clients with built-in MCP protocol support:
 
-### Configuration & Validation
-- [Validation Procedures](ops/VALIDATION.md) - Configuration and service validation
-- [Token Generation Walkthrough](ops/TOKEN_GENERATION_WALKTHROUGH.md) - JWT token setup
+- **[Native MCP Integration Guide](NATIVE-MCP-INTEGRATION.md)** - Overview, architecture, and quick start
+- **[Claude Desktop Onboarding](onboarding/claude-desktop.md)** - Step-by-step setup for Claude Desktop app
+- **[Claude Code Onboarding](onboarding/claude-code.md)** - CLI integration guide
+- **[GitHub Copilot Onboarding](onboarding/github-copilot.md)** - VS Code, JetBrains, and CLI setup
 
-### Implementation Status
-- [Deployment Summary](ops/DEPLOYMENT_SUMMARY.md) - Initial deployment details
-- [Deployment Complete Summary](ops/DEPLOYMENT_COMPLETE_SUMMARY.md) - Final deployment status
-- [Final Deployment Complete](ops/FINAL_DEPLOYMENT_COMPLETE.md) - Completion report
-- [Final Setup Steps](ops/FINAL_SETUP_STEPS.md) - Final configuration steps
-- [Final Status and Next Steps](ops/FINAL_STATUS_AND_NEXT_STEPS.md) - Current state and roadmap
-- [Status Update](ops/STATUS_UPDATE.md) - Latest status information
+**Best for:** Claude Desktop, Claude Code, GitHub Copilot, and any MCP-compliant client
 
-### Infrastructure
-- [Infrastructure Analysis](ops/INFRASTRUCTURE_ANALYSIS.md) - Infrastructure review and recommendations
-- [Security Group Status](ops/SECURITY_GROUP_STATUS.md) - Network security configuration
-- [Portainer Agent Setup](ops/PORTAINER_AGENT_SETUP.md) - Portainer integration
-- [Dashboard Fixes Final](ops/DASHBOARD_FIXES_FINAL.md) - Dashboard configuration fixes
+**Benefits:**
+- Native protocol support
+- Automatic tool discovery
+- Real-time streaming
+- No API wrappers needed
 
-### Issue Tracking
-- [Issues Fixed and Remaining](ops/ISSUES_FIXED_AND_REMAINING.md) - Known issues and resolutions
+### API Integration (For Non-MCP Clients)
 
----
+For platforms without native MCP support:
 
-## Runbooks
+- **[API Reference](API-REFERENCE.md)** - Complete HTTP API documentation
+- **[LLM Integration Guide](LLM-INTEGRATION.md)** - Integration examples for various platforms
+- **[Tool Catalog](TOOL-CATALOG.md)** - Complete list of all 38 tools
 
-Located in [runbooks/](runbooks/)
+**Best for:** ChatGPT, Gemini, LangChain, custom applications
 
-- [Deployment Guide](runbooks/DEPLOYMENT.md) - Step-by-step deployment procedures
-- [Testing Guide](runbooks/TESTING.md) - How to test MCP endpoints and functionality
+**Note:** This uses the HTTP JSON-RPC wrapper, not the native MCP protocol.
 
----
+## 💡 Examples
 
-## Development
+Ready-to-use configuration examples:
 
-### For AI Agents
-- [CLAUDE.md](CLAUDE.md) - AI agent development guide and context
-- [AGENTS.md](../AGENTS.md) - Repository guidelines for AI agents (root level)
+- **[Claude Desktop Config](examples/claude_desktop_config.json)** - Working `claude_desktop_config.json`
+- **[VS Code Settings](examples/vscode_settings.json)** - GitHub Copilot configuration
+- **[Installation Script](examples/install-local.sh)** - Automated local installation
 
-### Project Structure
-```
-axinova-mcp-server-go/
-├── cmd/                    # Application entrypoints
-├── internal/               # Internal packages
-├── config/                 # Configuration files
-├── scripts/                # Utility scripts
-├── docs/                   # This documentation
-│   ├── ops/               # Operational guides and status
-│   ├── runbooks/          # Step-by-step procedures
-│   └── adr/               # Architectural Decision Records
-├── Dockerfile             # Container build
-├── docker-compose.yml     # Local development stack
-├── Makefile              # Build automation
-└── README.md             # Main project README
-```
+## 🗺 Integration Quick Reference
 
----
+| Client | Transport | Config Location | Guide |
+|--------|-----------|----------------|-------|
+| **Claude Desktop** | stdio | `~/Library/Application Support/Claude/claude_desktop_config.json` | [Setup](onboarding/claude-desktop.md) |
+| **Claude Code** | stdio | Same as Claude Desktop | [Setup](onboarding/claude-code.md) |
+| **GitHub Copilot (VS Code)** | stdio | `settings.json` or `.vscode/settings.json` | [Setup](onboarding/github-copilot.md) |
+| **GitHub Copilot (JetBrains)** | stdio | IDE Settings → GitHub Copilot → MCP | [Setup](onboarding/github-copilot.md) |
+| **ChatGPT / Custom** | HTTP | API endpoint configuration | [API Guide](API-REFERENCE.md) |
 
-## Architectural Decision Records
+## 🛠 Available Services
 
-Located in [adr/](adr/)
+The MCP server provides tools for these services:
 
-*No ADRs yet. Use this directory for future architectural decisions.*
+- **Portainer** (8 tools) - Docker container management
+- **Grafana** (9 tools) - Monitoring dashboards
+- **Prometheus** (7 tools) - Metrics and alerting
+- **SilverBullet** (6 tools) - Wiki and knowledge base
+- **Vikunja** (8 tools) - Task and project management
 
-**When to create an ADR:**
-- Choosing between different MCP protocol versions
-- Selecting authentication/authorization strategies
-- Deciding on database schema changes
-- Major refactoring decisions
-- Infrastructure architecture changes
+**Total: 38 tools**
 
-**ADR Template:**
-```markdown
-# ADR-001: Title
+See [Tool Catalog](TOOL-CATALOG.md) for complete list.
 
-**Status:** Proposed | Accepted | Deprecated | Superseded  
-**Date:** YYYY-MM-DD  
-**Deciders:** Team members involved
+## 🔧 Configuration
 
-## Context
-What is the issue we're facing? What constraints exist?
+### Environment Variables
 
-## Decision
-What did we decide to do?
+All services are configured via environment variables with the `APP_` prefix:
 
-## Consequences
-What becomes easier or harder as a result of this decision?
-
-## Alternatives Considered
-What other options did we evaluate and why were they rejected?
-```
-
----
-
-## MCP Server Architecture
-
-### Overview
-The Axinova MCP Server provides a Model Context Protocol interface for AI agents to interact with the Axinova platform. It exposes tools and resources through a standardized protocol.
-
-### Key Components
-1. **MCP Protocol Handler** - Implements MCP specification
-2. **Tool Registry** - Available tools for AI agents
-3. **Resource Provider** - Exposes platform resources
-4. **Authentication** - JWT-based token validation
-5. **Logging & Monitoring** - Structured logging and metrics
-
-### Deployment Architecture
-- Runs as Docker container
-- Exposed through Traefik reverse proxy
-- Integrated with Prometheus/Grafana monitoring
-- Connected to platform PostgreSQL database
-
----
-
-## Common Tasks
-
-| Task | Document | Section |
-|------|----------|---------|
-| Deploy MCP server | [Deployment Guide](runbooks/DEPLOYMENT.md) | Deployment Steps |
-| Test MCP endpoints | [Testing Guide](runbooks/TESTING.md) | Testing Procedures |
-| Generate auth tokens | [Token Generation](ops/TOKEN_GENERATION_WALKTHROUGH.md) | Token Setup |
-| Validate config | [Validation](ops/VALIDATION.md) | Configuration Checks |
-| Check infrastructure | [Infrastructure Analysis](ops/INFRASTRUCTURE_ANALYSIS.md) | Review |
-| Setup monitoring | [Dashboard Fixes](ops/DASHBOARD_FIXES_FINAL.md) | Grafana Setup |
-
----
-
-## API Reference
-
-### MCP Endpoints
-
-**Base URL:** `https://mcp.axinova.ai`
-
-#### Health Check
 ```bash
-curl https://mcp.axinova.ai/health
+# Portainer
+APP_PORTAINER__URL=https://portainer.example.com
+APP_PORTAINER__TOKEN=ptr_xxx
+
+# Grafana
+APP_GRAFANA__URL=https://grafana.example.com
+APP_GRAFANA__TOKEN=glsa_xxx
+
+# Prometheus
+APP_PROMETHEUS__URL=https://prometheus.example.com
+
+# SilverBullet
+APP_SILVERBULLET__URL=https://notes.example.com
+APP_SILVERBULLET__TOKEN=xxx
+
+# Vikunja
+APP_VIKUNJA__URL=https://tasks.example.com
+APP_VIKUNJA__TOKEN=xxx
+
+# Optional settings
+APP_TLS__SKIP_VERIFY=true  # For self-signed certs
+APP_LOG__LEVEL=info        # debug, info, warn, error
+APP_HTTP__TIMEOUT=30s      # HTTP client timeout
 ```
 
-#### Tool Discovery
+**Note:** Use double underscores (`__`) for nested configuration keys.
+
+## 🚀 Installation Options
+
+### Option 1: Download Pre-built Binary
+
 ```bash
-curl -H "Authorization: Bearer <token>" https://mcp.axinova.ai/tools
+# macOS
+curl -L https://github.com/axinova-ai/axinova-mcp-server-go/releases/latest/download/axinova-mcp-server-macos -o /usr/local/bin/axinova-mcp-server
+chmod +x /usr/local/bin/axinova-mcp-server
+
+# Linux
+curl -L https://github.com/axinova-ai/axinova-mcp-server-go/releases/latest/download/axinova-mcp-server-linux -o /usr/local/bin/axinova-mcp-server
+chmod +x /usr/local/bin/axinova-mcp-server
 ```
 
-#### Resource Listing
+### Option 2: Use Installation Script
+
 ```bash
-curl -H "Authorization: Bearer <token>" https://mcp.axinova.ai/resources
+# Run automated installation
+curl -fsSL https://raw.githubusercontent.com/axinova-ai/axinova-mcp-server-go/main/docs/examples/install-local.sh | bash
 ```
 
-See [Testing Guide](runbooks/TESTING.md) for detailed API examples.
+### Option 3: Docker
 
----
-
-## Development Workflow
-
-### Local Development
-1. Clone repository
-2. Copy `.env.example` to `.env`
-3. Run `docker-compose up`
-4. Access server at `http://localhost:8080`
-
-### Testing
 ```bash
-# Run unit tests
-make test
+# Pull image
+docker pull ghcr.io/axinova-ai/axinova-mcp-server-go:latest
 
-# Run integration tests
-make test-integration
-
-# Test MCP endpoints
-./test_mcp.sh
-./test_tool_call.sh
+# Run (stdio mode)
+docker run -i --rm \
+  -e APP_PORTAINER__TOKEN=ptr_xxx \
+  ghcr.io/axinova-ai/axinova-mcp-server-go:latest
 ```
 
-### Building
+### Option 4: Build from Source
+
 ```bash
-# Build binary
+# Clone repository
+git clone https://github.com/axinova-ai/axinova-mcp-server-go.git
+cd axinova-mcp-server-go
+
+# Build
 make build
 
-# Build Docker image
-make docker-build
-
-# Build and run locally
-make run
+# Install globally
+sudo make install
 ```
 
----
+## 🔒 Security Best Practices
 
-## Troubleshooting
+### Token Management
+
+- **Store tokens securely** - Use environment variables or secure vaults
+- **Never commit tokens** - Add config files with tokens to `.gitignore`
+- **Use read-only tokens** - Where possible, use viewer/read-only roles
+- **Rotate regularly** - Set reminders to rotate tokens every 90 days
+- **Separate environments** - Use different tokens for dev/stage/prod
+
+### File Permissions
+
+```bash
+# Protect your config files
+chmod 600 ~/Library/Application\ Support/Claude/claude_desktop_config.json
+chmod 600 .vscode/settings.json
+```
+
+## 🐛 Troubleshooting
 
 ### Common Issues
 
-#### 1. Connection Refused
-**Symptom:** Cannot connect to MCP server  
-**Solution:** Check Traefik routing configuration and service health
+**Server not starting:**
+- Check binary is executable: `chmod +x /usr/local/bin/axinova-mcp-server`
+- Test manually: `echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{...}}' | axinova-mcp-server`
 
-#### 2. Authentication Failed
-**Symptom:** 401 Unauthorized responses  
-**Solution:** Verify JWT token generation and expiration - see [Token Generation](ops/TOKEN_GENERATION_WALKTHROUGH.md)
+**Tools not appearing in client:**
+- Verify config file syntax (valid JSON)
+- Check client logs (e.g., `~/Library/Logs/Claude/mcp*.log` for Claude Desktop)
+- Restart client completely (quit and relaunch)
 
-#### 3. Database Connection Errors
-**Symptom:** Cannot connect to PostgreSQL  
-**Solution:** Check database URL and credentials in configuration
+**Connection errors to services:**
+- Verify service URLs are accessible: `curl -I https://portainer.example.com`
+- Check API tokens are valid and not expired
+- Ensure `APP_TLS__SKIP_VERIFY=true` for self-signed certs
 
-#### 4. Tool Execution Failures
-**Symptom:** Tools return errors or timeouts  
-**Solution:** Check tool implementation logs and resource availability
+**Permission errors:**
+- Make binary executable: `chmod +x /usr/local/bin/axinova-mcp-server`
+- Check ownership: `ls -la /usr/local/bin/axinova-mcp-server`
 
-For more troubleshooting, see [Issues Fixed and Remaining](ops/ISSUES_FIXED_AND_REMAINING.md)
+### Debug Mode
 
----
+Enable debug logging for troubleshooting:
 
-## Security Considerations
-
-### Authentication
-- All endpoints except `/health` require JWT authentication
-- Tokens expire after configured duration
-- See [Token Generation](ops/TOKEN_GENERATION_WALKTHROUGH.md) for setup
-
-### Network Security
-- Server runs behind Traefik reverse proxy
-- HTTPS/TLS termination at proxy
-- Security group configuration in [Security Group Status](ops/SECURITY_GROUP_STATUS.md)
-
-### Secrets Management
-- Environment variables for sensitive data
-- No secrets committed to repository
-- Use `.env` file locally (never commit)
+```bash
+APP_LOG__LEVEL=debug
+APP_LOG__FORMAT=json  # Optional: structured logs
+```
 
 ---
 
-## Monitoring & Observability
+## 📚 Operational Documentation
 
-### Metrics
-- Prometheus metrics exposed on `/metrics`
-- Grafana dashboards for visualization
-- See [Dashboard Fixes](ops/DASHBOARD_FIXES_FINAL.md)
+### Deployment & Infrastructure
 
-### Logging
-- Structured JSON logging
-- Log aggregation through Loki (if configured)
-- Log levels configurable via environment
+- **[Deployment Guide](runbooks/DEPLOYMENT.md)** - Production deployment procedures
+- **[Testing Guide](runbooks/TESTING.md)** - How to test MCP endpoints
+- **[Token Generation](ops/TOKEN_GENERATION_WALKTHROUGH.md)** - Service token setup
+- **[Validation Procedures](ops/VALIDATION.md)** - Configuration validation
 
-### Health Checks
-- HTTP health endpoint: `/health`
-- Readiness probe: `/ready`
-- Liveness probe: `/live`
+### Development
 
----
+- **[CLAUDE.md](CLAUDE.md)** - AI agent development guide
+- **[Main README](../README.md)** - Project overview
 
-## Contributing
+### Implementation Status
 
-### Documentation Standards
-1. Use Markdown for all documentation
-2. Follow existing structure and organization
-3. Update this README when adding new docs
-4. Keep operational logs in `docs/ops/`
-5. Keep procedures in `docs/runbooks/`
-6. Create ADRs for significant decisions
-
-### Code Standards
-- Follow Go best practices
-- Run `make fmt` before committing
-- Write tests for new features
-- Update documentation with code changes
+- **[Infrastructure Analysis](ops/INFRASTRUCTURE_ANALYSIS.md)** - Infrastructure review
+- **[Issues Fixed](ops/ISSUES_FIXED_AND_REMAINING.md)** - Known issues
 
 ---
 
-## Related Projects
+## 📝 Additional Resources
 
-- [axinova-deploy](../../axinova-deploy/) - Deployment automation
-- [axinova-ai-lab-go](../../axinova-ai-lab-go/) - AI Lab backend
-- [axinova-home-go](../../axinova-home-go/) - Platform backend
+### External Documentation
 
----
+- **[MCP Specification](https://spec.modelcontextprotocol.io/)** - Official Model Context Protocol spec
+- **[Claude Desktop](https://claude.ai)** - Download Claude Desktop
+- **[GitHub Copilot Docs](https://docs.github.com/copilot)** - GitHub Copilot documentation
 
-## External References
+### Project Links
 
-- [Model Context Protocol Specification](https://modelcontextprotocol.io/)
-- [Go Documentation](https://golang.org/doc/)
-- [Docker Documentation](https://docs.docker.com/)
-- [Traefik Documentation](https://doc.traefik.io/traefik/)
+- **[GitHub Repository](https://github.com/axinova-ai/axinova-mcp-server-go)** - Source code and issues
+- **[Production Server](https://mcp.axinova-ai.com)** - Live API endpoint (for HTTP integration)
 
 ---
 
-**Last Updated:** January 20, 2026  
-**Maintained By:** MCP Server Team  
-**Questions?** See [CLAUDE.md](CLAUDE.md) for AI agent context
+## Navigation
+
+**Quick Links:**
+- [← Back to Main README](../README.md)
+- [Native MCP Integration Guide →](NATIVE-MCP-INTEGRATION.md)
+- [Tool Catalog →](TOOL-CATALOG.md)
+- [API Reference →](API-REFERENCE.md)

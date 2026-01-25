@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "axinova-tools": {
+      "command": "/usr/local/bin/axinova-mcp-server",
+      "env": {
+        "ENV": "prod",
+        "APP_LOG__LEVEL": "info",
+        "APP_PORTAINER__URL": "https://portainer.axinova-internal.xyz",
+        "APP_PORTAINER__TOKEN": "ptr_YOUR_TOKEN_HERE",
+        "APP_GRAFANA__URL": "https://grafana.axinova-internal.xyz",
+        "APP_GRAFANA__TOKEN": "glsa_YOUR_TOKEN_HERE",
+        "APP_PROMETHEUS__URL": "https://prometheus.axinova-internal.xyz",
+        "APP_SILVERBULLET__URL": "https://notes.axinova-internal.xyz",
+        "APP_SILVERBULLET__TOKEN": "YOUR_TOKEN_HERE",
+        "APP_VIKUNJA__URL": "https://tasks.axinova-internal.xyz",
+        "APP_VIKUNJA__TOKEN": "YOUR_TOKEN_HERE",
+        "APP_TLS__SKIP_VERIFY": "true",
+        "APP_HTTP__TIMEOUT": "30s",
+        "APP_SERVER__API_ENABLED": "false",
+        "APP_SERVER__SSE_ENABLED": "false",
+        "APP_SERVER__HTTP_ENABLED": "false"
+      }
+    }
+  }
+}
