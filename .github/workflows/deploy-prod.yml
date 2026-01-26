@@ -1,12 +1,19 @@
 name: deploy-prod
 
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
+  # [CD DISABLED] Uncomment to re-enable automatic deployment:
+  # push:
+  #   branches:
+  #     - main
+  #   paths-ignore:
+  #     - "**/*.md"
+  #     - "docs/**"
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual deployment'
+        required: false
+        type: string
 
 permissions:
   contents: read
